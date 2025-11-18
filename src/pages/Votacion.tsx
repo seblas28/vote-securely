@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { CandidateCard } from "@/components/CandidateCard";
@@ -6,6 +6,7 @@ import { VoteTimer } from "@/components/VoteTimer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { dataStore } from "@/lib/dataStore";
 
 const Votacion = () => {
   const navigate = useNavigate();
@@ -13,57 +14,11 @@ const Votacion = () => {
   const [selectedMayor, setSelectedMayor] = useState<string | null>(null);
   const [selectedDeputy, setSelectedDeputy] = useState<string | null>(null);
   const [showTimeoutDialog, setShowTimeoutDialog] = useState(false);
-
-  const presidents = [
-    {
-      id: "p1",
-      name: "María González",
-      party: "Partido del Progreso",
-      proposals: "Enfoque en educación universal gratuita, reforma del sistema de salud y creación de empleos en tecnología verde.",
-      imageUrl: "/placeholder.svg",
-    },
-    {
-      id: "p2",
-      name: "Carlos Ramírez",
-      party: "Alianza Nacional",
-      proposals: "Reducción de impuestos para pequeñas empresas, fortalecimiento de la seguridad ciudadana y apoyo al sector agrícola.",
-      imageUrl: "/placeholder.svg",
-    },
-  ];
-
-  const mayors = [
-    {
-      id: "m1",
-      name: "Ana Martínez",
-      party: "Movimiento Ciudadano",
-      proposals: "Mejora del transporte público, construcción de parques comunitarios y programa de vivienda accesible.",
-      imageUrl: "/placeholder.svg",
-    },
-    {
-      id: "m2",
-      name: "José López",
-      party: "Partido Verde Local",
-      proposals: "Reciclaje obligatorio, incentivos para energía solar y expansión de ciclovías en toda la ciudad.",
-      imageUrl: "/placeholder.svg",
-    },
-  ];
-
-  const deputies = [
-    {
-      id: "d1",
-      name: "Laura Fernández",
-      party: "Partido Progresista",
-      proposals: "Leyes de protección al consumidor, transparencia gubernamental y derechos laborales modernos.",
-      imageUrl: "/placeholder.svg",
-    },
-    {
-      id: "d2",
-      name: "Roberto Silva",
-      party: "Unión Democrática",
-      proposals: "Apoyo a la agricultura familiar, reforma educativa y mejora de infraestructura rural.",
-      imageUrl: "/placeholder.svg",
-    },
-  ];
+  
+  const candidates = dataStore.getCandidates();
+  const presidents = candidates.filter(c => c.category === 'president');
+  const mayors = candidates.filter(c => c.category === 'mayor');
+  const deputies = candidates.filter(c => c.category === 'deputy');
 
   const handleTimeUp = () => {
     setShowTimeoutDialog(true);
@@ -74,6 +29,12 @@ const Votacion = () => {
       toast.error("Por favor selecciona un candidato en cada categoría");
       return;
     }
+
+    dataStore.addVote({
+      president: selectedPresident,
+      mayor: selectedMayor,
+      deputy: selectedDeputy,
+    });
 
     toast.success("¡Voto registrado exitosamente!");
     setTimeout(() => {
