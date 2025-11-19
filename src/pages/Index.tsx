@@ -8,6 +8,23 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Navbar */}
+      <nav className="bg-white border-b border-border/40 sticky top-0 z-50">
+        <div className="container mx-auto max-w-6xl px-4 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <Vote className="h-6 w-6 text-primary" />
+            <span className="text-xl font-bold text-foreground">Votaciones Online</span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/admin/login")}
+          >
+            Acceso Administrativo
+          </Button>
+        </div>
+      </nav>
+
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-institutional py-20 px-4">
         <div className="container mx-auto max-w-6xl">
@@ -16,7 +33,7 @@ const Index = () => {
               <Vote className="h-12 w-12" />
             </div>
             <h1 className="text-4xl md:text-6xl font-bold">
-              Sistema Electoral Digital
+              Votaciones Online
             </h1>
             <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto">
               Plataforma segura y transparente para ejercer tu derecho al voto
@@ -201,25 +218,11 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Admin Access */}
-      <section className="py-8 px-4 border-t border-border/40">
-        <div className="container mx-auto max-w-6xl text-center">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/admin/login")}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            Acceso Administrativo
-          </Button>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="bg-primary text-primary-foreground py-8 px-4">
         <div className="container mx-auto max-w-6xl text-center">
           <p className="text-sm">
-            © 2024 Sistema Electoral Digital. Todos los derechos reservados.
+            © 2024 Votaciones Online. Todos los derechos reservados.
           </p>
           <p className="text-xs mt-2 opacity-80">
             Plataforma segura certificada para procesos electorales democráticos
