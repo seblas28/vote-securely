@@ -149,20 +149,36 @@ export const dataStore = {
       deputy: {} as Record<string, number>,
     };
 
-    // Initialize counts
+    // Initialize counts including null votes
     candidates.forEach(c => {
       stats[c.category][c.id] = 0;
     });
+    
+    // Add null vote categories
+    stats.president['null'] = 0;
+    stats.mayor['null'] = 0;
+    stats.deputy['null'] = 0;
 
     // Count votes
     votes.forEach(vote => {
-      if (stats.president[vote.president] !== undefined) {
+      // President votes
+      if (vote.president === 'null' || !vote.president) {
+        stats.president['null']++;
+      } else if (stats.president[vote.president] !== undefined) {
         stats.president[vote.president]++;
       }
-      if (stats.mayor[vote.mayor] !== undefined) {
+      
+      // Mayor votes
+      if (vote.mayor === 'null' || !vote.mayor) {
+        stats.mayor['null']++;
+      } else if (stats.mayor[vote.mayor] !== undefined) {
         stats.mayor[vote.mayor]++;
       }
-      if (stats.deputy[vote.deputy] !== undefined) {
+      
+      // Deputy votes
+      if (vote.deputy === 'null' || !vote.deputy) {
+        stats.deputy['null']++;
+      } else if (stats.deputy[vote.deputy] !== undefined) {
         stats.deputy[vote.deputy]++;
       }
     });
@@ -176,22 +192,44 @@ export const dataStore = {
     const votes = this.getVotes();
     
     let imported = 0;
+    let nullVotes = 0;
+    let invalidRows = 0;
+    
+    const candidates = this.getCandidates();
+    const validIds = new Set(candidates.map(c => c.id));
+    
     lines.forEach((line, index) => {
       if (index === 0) return; // Skip header
+      
       const [president, mayor, deputy] = line.split(',').map(s => s.trim());
-      if (president && mayor && deputy) {
-        votes.push({
-          id: `csv${Date.now()}${index}`,
-          timestamp: new Date(),
-          president,
-          mayor,
-          deputy,
-        });
-        imported++;
+      
+      // Data cleaning: validate row has at least one value
+      if (!president && !mayor && !deputy) {
+        invalidRows++;
+        return;
       }
+      
+      // Data training: normalize blank votes to 'null'
+      const cleanPresident = (!president || president === '' || !validIds.has(president)) ? 'null' : president;
+      const cleanMayor = (!mayor || mayor === '' || !validIds.has(mayor)) ? 'null' : mayor;
+      const cleanDeputy = (!deputy || deputy === '' || !validIds.has(deputy)) ? 'null' : deputy;
+      
+      // Track null votes
+      if (cleanPresident === 'null' || cleanMayor === 'null' || cleanDeputy === 'null') {
+        nullVotes++;
+      }
+      
+      votes.push({
+        id: `csv${Date.now()}${index}`,
+        timestamp: new Date(),
+        president: cleanPresident,
+        mayor: cleanMayor,
+        deputy: cleanDeputy,
+      });
+      imported++;
     });
 
     localStorage.setItem(STORAGE_KEYS.VOTES, JSON.stringify(votes));
-    return imported;
+    return { imported, nullVotes, invalidRows };
   },
 };

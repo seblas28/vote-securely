@@ -13,6 +13,8 @@ import { dataStore, type Candidate } from "@/lib/dataStore";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
+const MAYOR_COLORS = ['hsl(var(--chart-2))', 'hsl(var(--chart-4))', 'hsl(var(--chart-1))', 'hsl(var(--chart-5))', 'hsl(var(--chart-3))'];
+const DEPUTY_COLORS = ['hsl(var(--chart-3))', 'hsl(var(--chart-5))', 'hsl(var(--chart-2))', 'hsl(var(--chart-1))', 'hsl(var(--chart-4))'];
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -91,8 +93,9 @@ const AdminDashboard = () => {
     reader.onload = (event) => {
       const csv = event.target?.result as string;
       try {
-        const imported = dataStore.importVotesFromCSV(csv);
-        toast.success(`${imported} votos importados exitosamente`);
+        const result = dataStore.importVotesFromCSV(csv);
+        const message = `✓ ${result.imported} votos importados\n${result.nullVotes > 0 ? `⚠ ${result.nullVotes} votos en blanco (marcados como nulos)\n` : ''}${result.invalidRows > 0 ? `✗ ${result.invalidRows} filas inválidas descartadas` : ''}`;
+        toast.success(message, { duration: 5000 });
         loadData();
       } catch (error) {
         toast.error("Error al importar CSV");
@@ -105,10 +108,21 @@ const AdminDashboard = () => {
   const getChartData = (category: 'president' | 'mayor' | 'deputy') => {
     if (!voteStats) return [];
     const categoryCandidates = candidates.filter(c => c.category === category);
-    return categoryCandidates.map(c => ({
+    const data = categoryCandidates.map(c => ({
       name: c.name,
       votos: voteStats[category][c.id] || 0,
     }));
+    
+    // Add null votes if they exist
+    const nullVotes = voteStats[category]['null'] || 0;
+    if (nullVotes > 0) {
+      data.push({
+        name: 'Votos Nulos',
+        votos: nullVotes,
+      });
+    }
+    
+    return data;
   };
 
   const getTotalVotes = () => {
@@ -184,7 +198,7 @@ const AdminDashboard = () => {
                         dataKey="votos"
                       >
                         {getChartData('mayor').map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell key={`cell-${index}`} fill={MAYOR_COLORS[index % MAYOR_COLORS.length]} />
                         ))}
                       </Pie>
                       <Tooltip />
@@ -205,7 +219,11 @@ const AdminDashboard = () => {
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Bar dataKey="votos" fill="hsl(var(--chart-3))" />
+                      <Bar dataKey="votos">
+                        {getChartData('deputy').map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={DEPUTY_COLORS[index % DEPUTY_COLORS.length]} />
+                        ))}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
