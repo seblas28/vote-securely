@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { LogOut, Plus, Edit, Trash2, Upload, BarChart3 } from "lucide-react";
 import { dataStore, type Candidate } from "@/lib/dataStore";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { VotingControl } from "@/components/VotingControl";
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 const MAYOR_COLORS = ['hsl(var(--chart-2))', 'hsl(var(--chart-4))', 'hsl(var(--chart-1))', 'hsl(var(--chart-5))', 'hsl(var(--chart-3))'];
@@ -182,6 +183,7 @@ const AdminDashboard = () => {
           </TabsList>
 
           <TabsContent value="stats" className="space-y-6">
+            <VotingControl />
             <Card>
               <CardHeader>
                 <CardTitle>Resumen de Votación</CardTitle>

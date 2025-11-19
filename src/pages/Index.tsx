@@ -1,10 +1,94 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, Vote, Clock, CheckCircle2 } from "lucide-react";
+import { Shield, Vote, Clock, CheckCircle2, Trophy, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import {dataStore, type VotingStatus} from "@/lib/dataStore";
 
 const Index = () => {
   const navigate = useNavigate();
+  const [status, setStatus] = useState<VotingStatus>(dataStore.getVotingStatus());
+  const [timeLeft, setTimeLeft] = useState<string>("");
+  const [winners, setWinners] = useState<any>(null);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const currentStatus = dataStore.getVotingStatus();
+      setStatus(currentStatus);
+
+      if (currentStatus.isActive && currentStatus.endTime) {
+        const now = new Date().getTime();
+        const end = new Date(currentStatus.endTime).getTime();
+        const distance = end - now;
+
+        if (distance > 0) {
+          dataStore.endVoting();
+          setStatus(dataStore.getVotingStatus());
+        } else {
+          const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+          setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
+        }
+      }
+      
+      if (currentStatus.isFinished) {
+        setWinners(dataStore.getWinners());
+      }
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  if (status.isFinished && winners) {
+    return (
+      <div className="min-h-screen bg-background">
+         {/* Navbar Simplificado */}
+        <nav className="bg-white border-b border-border/40 sticky top-0 z-50">
+            <div className="container mx-auto max-w-6xl px-4 py-4 flex justify-between items-center">
+            <div className="flex items-center gap-3">
+                <Vote className="h-6 w-6 text-primary" />
+                <span className="text-xl font-bold text-foreground">Resultados Oficiales</span>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => navigate("/admin/login")}>
+                Admin
+            </Button>
+            </div>
+        </nav>
+
+        <div className="container mx-auto max-w-6xl px-4 py-12">
+            <div className="text-center mb-12">
+                <div className="inline-flex items-center justify-center p-4 bg-yellow-100 rounded-full mb-4">
+                    <Trophy className="h-12 w-12 text-yellow-600" />
+                </div>
+                <h1 className="text-4xl font-bold mb-4">Votación Finalizada</h1>
+                <p className="text-xl text-muted-foreground">Presentando a los ganadores electos</p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+                {/* Ganador Presidente */}
+                <WinnerCard 
+                    title="Presidente Electo" 
+                    winner={winners.president} 
+                    color="border-institutional"
+                />
+                {/* Ganador Alcalde */}
+                <WinnerCard 
+                    title="Alcalde Electo" 
+                    winner={winners.mayor} 
+                    color="border-success"
+                />
+                {/* Ganador Diputado */}
+                <WinnerCard 
+                    title="Diputado Electo" 
+                    winner={winners.deputy} 
+                    color="border-warning"
+                />
+            </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -29,22 +113,40 @@ const Index = () => {
       <section className="relative overflow-hidden bg-gradient-institutional py-20 px-4">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center text-white space-y-6">
-            <div className="inline-flex items-center justify-center p-3 bg-white/10 rounded-full mb-4">
-              <Vote className="h-12 w-12" />
-            </div>
-            <h1 className="text-4xl md:text-6xl font-bold">
-              Votaciones Online
-            </h1>
-            <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto">
-              Plataforma segura y transparente para ejercer tu derecho al voto
-            </p>
-            <Button
-              size="lg"
-              onClick={() => navigate("/verificacion")}
-              className="bg-white text-institutional hover:bg-white/90 text-lg px-8 py-6 mt-4"
-            >
-              Iniciar Proceso de Votación
-            </Button>
+            {/* Lógica del Cronómetro / Botón */}
+            {!status.isActive && !status.isFinished ? (
+                 <>
+                    <div className="inline-flex items-center justify-center p-3 bg-white/10 rounded-full mb-4">
+                        <AlertTriangle className="h-12 w-12 text-yellow-300" />
+                    </div>
+                    <h1 className="text-4xl md:text-6xl font-bold">Votación Cerrada</h1>
+                    <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto">
+                        El proceso electoral aún no ha comenzado. Por favor espera a la apertura oficial.
+                    </p>
+                 </>
+            ) : (
+                <>
+                  <div className="inline-flex items-center justify-center p-3 bg-white/10 rounded-full mb-4">
+                        <Clock className="h-12 w-12 animate-pulse" />
+                    </div>
+                    <h1 className="text-4xl md:text-6xl font-bold">
+                        Tiempo Restante
+                    </h1>
+                    <div className="text-5xl md:text-7xl font-mono font-bold text-white py-4 tracking-wider">
+                        {timeLeft}
+                    </div>
+                    <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto">
+                    Plataforma segura y transparente para ejercer tu derecho al voto
+                    </p>
+                    <Button
+                    size="lg"
+                    onClick={() => navigate("/verificacion")}
+                    className="bg-white text-institutional hover:bg-white/90 text-lg px-8 py-6 mt-4 shadow-lg transform hover:scale-105 transition-all"
+                    >
+                    Ingresar a Votar
+                    </Button>
+                </>
+            )}
           </div>
         </div>
       </section>
@@ -232,5 +334,40 @@ const Index = () => {
     </div>
   );
 };
+
+const WinnerCard = ({ title, winner, color }: { title: string, winner: any, color: string }) => {
+    return (
+        <Card className={`relative overflow-hidden border-t-4 ${color} shadow-elevated`}>
+            <CardHeader className="text-center pb-2">
+                <CardTitle className="text-xl text-muted-foreground uppercase tracking-widest text-xs font-bold mb-2">
+                    {title}
+                </CardTitle>
+                {winner ? (
+                    <h2 className="text-2xl font-bold">{winner.name}</h2>
+                ) : (
+                    <h2 className="text-xl font-bold text-muted-foreground">Empate / Sin Votos</h2>
+                )}
+            </CardHeader>
+            <CardContent className="text-center">
+                {winner && (
+                    <>
+                        <div className="my-4">
+                            <img 
+                                src={winner.imageUrl || "/placeholder.svg"} 
+                                alt={winner.name}
+                                className="w-24 h-24 rounded-full mx-auto object-cover border-4 border-white shadow-md"
+                            />
+                        </div>
+                        <div className="bg-muted/50 rounded-lg p-3">
+                            <p className="font-semibold text-institutional">{winner.party}</p>
+                            <p className="text-2xl font-bold mt-1">{winner.votes} <span className="text-sm font-normal text-muted-foreground">votos</span></p>
+                        </div>
+                    </>
+                )}
+                {!winner && <p className="py-8 text-muted-foreground">No hay datos suficientes</p>}
+            </CardContent>
+        </Card>
+    )
+}
 
 export default Index;

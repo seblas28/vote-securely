@@ -17,9 +17,17 @@ export interface Vote {
   deputy: string;
 }
 
+export interface VotingStatus {
+  isActive: boolean;
+  isFinished: boolean;
+  startTime?: string | null;
+  endTime?: string | null;
+}
+
 const STORAGE_KEYS = {
   CANDIDATES: 'electoral_candidates',
   VOTES: 'electoral_votes',
+  STATUS: 'electoral_status',
 };
 
 // Initialize default candidates
@@ -186,6 +194,50 @@ export const dataStore = {
     return stats;
   },
 
+  getVotingStatus(): VotingStatus {
+    const stored = localStorage.getItem(STORAGE_KEYS.STATUS);
+    if (!stored) {
+      return {
+        isActive: false,
+        isFinished: false,
+        startTime: null,
+        endTime: null
+      };
+    }
+    return JSON.parse(stored);
+  },
+
+  startVoting() {
+    const now = new Date();
+    const endTime = new Date(now.getTime() + 24 * 60 * 60 * 1000); // +24 horas
+    
+    const status: VotingStatus = {
+      isActive: true,
+      isFinished: false,
+      startTime: now.toISOString(),
+      endTime: endTime.toISOString()
+    };
+    localStorage.setItem(STORAGE_KEYS.STATUS, JSON.stringify(status));
+    return status;
+  },
+
+  endVoting() {
+    const currentStatus = this.getVotingStatus();
+    const status: VotingStatus = {
+      ...currentStatus,
+      isActive: false,
+      isFinished: true,
+      endTime: new Date().toISOString() // Marca el fin real ahora mismo
+    };
+    localStorage.setItem(STORAGE_KEYS.STATUS, JSON.stringify(status));
+    return status;
+  },
+
+  resetVoting() {
+    localStorage.removeItem(STORAGE_KEYS.STATUS);
+    localStorage.removeItem(STORAGE_KEYS.VOTES); // Opcional: limpiar votos al reiniciar
+  },
+
   importVotesFromCSV(csvData: string) {
     // Expected CSV format: president_id,mayor_id,deputy_id
     const lines = csvData.split('\n').filter(line => line.trim());
@@ -232,4 +284,32 @@ export const dataStore = {
     localStorage.setItem(STORAGE_KEYS.VOTES, JSON.stringify(votes));
     return { imported, nullVotes, invalidRows };
   },
+
+  getWinners() {
+    const stats = this.getVoteStats();
+    const candidates = this.getCandidates();
+    
+    const getCategoryWinner = (category: 'president' | 'mayor' | 'deputy') => {
+      const catStats = stats[category];
+      let maxVotes = -1;
+      let winnerId = null;
+
+      Object.entries(catStats).forEach(([id, votes]) => {
+        if (id !== 'null' && (votes as number) > maxVotes) {
+          maxVotes = votes as number;
+          winnerId = id;
+        }
+      });
+
+      if (!winnerId) return null;
+      const winner = candidates.find(c => c.id === winnerId);
+      return winner ? { ...winner, votes: maxVotes } : null;
+    };
+
+    return {
+      president: getCategoryWinner('president'),
+      mayor: getCategoryWinner('mayor'),
+      deputy: getCategoryWinner('deputy'),
+    };
+  }
 };
