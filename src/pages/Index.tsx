@@ -18,7 +18,14 @@ const Index = () => {
 
       if (currentStatus.isActive && currentStatus.endTime) {
         const now = new Date().getTime();
-        const end = new Date(currentStatus.endTime).getTime();
+        const endDate = new Date(currentStatus.endTime as string);
+        const end = endDate.getTime();
+
+        if (isNaN(end)) {
+            console.error("Fecha de fin inválida detectada:", currentStatus.endTime);
+            return;
+        }
+
         const distance = end - now;
 
         if (distance > 0) {
