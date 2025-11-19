@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { dataStore } from "@/lib/dataStore";
+import { Vote } from "lucide-react";
 
 const Votacion = () => {
   const navigate = useNavigate();
@@ -44,6 +45,14 @@ const Votacion = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Navbar */}
+      <nav className="bg-white border-b border-border/40">
+        <div className="container mx-auto max-w-6xl px-4 py-4 flex items-center gap-3">
+          <Vote className="h-6 w-6 text-primary" />
+          <span className="text-xl font-bold text-foreground">Votaciones Online</span>
+        </div>
+      </nav>
+      
       <div className="container mx-auto max-w-7xl px-4 py-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8 flex-wrap gap-4">

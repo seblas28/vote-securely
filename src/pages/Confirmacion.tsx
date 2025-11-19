@@ -1,13 +1,22 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Vote } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Confirmacion = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background">
+      {/* Navbar */}
+      <nav className="bg-white border-b border-border/40">
+        <div className="container mx-auto max-w-6xl px-4 py-4 flex items-center gap-3">
+          <Vote className="h-6 w-6 text-primary" />
+          <span className="text-xl font-bold text-foreground">Votaciones Online</span>
+        </div>
+      </nav>
+      
+      <div className="flex items-center justify-center px-4 min-h-[calc(100vh-73px)]">
       <Card className="w-full max-w-md shadow-elevated">
         <CardHeader className="text-center pb-4">
           <div className="mx-auto mb-4 inline-flex p-4 bg-accent/10 rounded-full">
@@ -34,6 +43,7 @@ const Confirmacion = () => {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 };

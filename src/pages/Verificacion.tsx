@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, Vote } from "lucide-react";
 import { toast } from "sonner";
 
 const Verificacion = () => {
@@ -36,7 +36,16 @@ const Verificacion = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-background">
+      {/* Navbar */}
+      <nav className="bg-white border-b border-border/40">
+        <div className="container mx-auto max-w-6xl px-4 py-4 flex items-center gap-3">
+          <Vote className="h-6 w-6 text-primary" />
+          <span className="text-xl font-bold text-foreground">Votaciones Online</span>
+        </div>
+      </nav>
+      
+      <div className="flex items-center justify-center px-4 py-12 min-h-[calc(100vh-73px)]">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-4">
@@ -108,6 +117,7 @@ const Verificacion = () => {
             Volver al Inicio
           </Button>
         </div>
+      </div>
       </div>
     </div>
   );
