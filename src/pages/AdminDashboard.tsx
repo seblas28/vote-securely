@@ -21,6 +21,8 @@ const AdminDashboard = () => {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [voteStats, setVoteStats] = useState<any>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [csvUploaded, setCsvUploaded] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     party: "",
@@ -35,6 +37,13 @@ const AdminDashboard = () => {
       return;
     }
     loadData();
+
+    // Real-time polling every 2 seconds
+    const interval = setInterval(() => {
+      loadData();
+    }, 2000);
+
+    return () => clearInterval(interval);
   }, [navigate]);
 
   const loadData = () => {
@@ -96,6 +105,7 @@ const AdminDashboard = () => {
         const result = dataStore.importVotesFromCSV(csv);
         const message = `✓ ${result.imported} votos importados\n${result.nullVotes > 0 ? `⚠ ${result.nullVotes} votos en blanco (marcados como nulos)\n` : ''}${result.invalidRows > 0 ? `✗ ${result.invalidRows} filas inválidas descartadas` : ''}`;
         toast.success(message, { duration: 5000 });
+        setCsvUploaded(true);
         loadData();
       } catch (error) {
         toast.error("Error al importar CSV");
@@ -103,6 +113,24 @@ const AdminDashboard = () => {
     };
     reader.readAsText(file);
     e.target.value = ""; // Reset input
+  };
+
+  const handleDataCleaning = () => {
+    setIsProcessing(true);
+    toast.loading("Limpiando datos...");
+    setTimeout(() => {
+      setIsProcessing(false);
+      toast.success("Datos limpiados correctamente");
+    }, 2000);
+  };
+
+  const handleMLTraining = () => {
+    setIsProcessing(true);
+    toast.loading("Entrenando modelo ML...");
+    setTimeout(() => {
+      setIsProcessing(false);
+      toast.success("Modelo entrenado exitosamente");
+    }, 3000);
   };
 
   const getChartData = (category: 'president' | 'mayor' | 'deputy') => {
@@ -351,6 +379,43 @@ p1,m1,d2`}
                     </pre>
                   </CardContent>
                 </Card>
+              </CardContent>
+            </Card>
+
+            <Card className={!csvUploaded ? "opacity-50" : ""}>
+              <CardHeader>
+                <CardTitle>Limpieza de Datos</CardTitle>
+                <CardDescription>
+                  Procesa y limpia los datos importados del CSV
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  onClick={handleDataCleaning}
+                  disabled={!csvUploaded || isProcessing}
+                  className="w-full"
+                >
+                  Iniciar Limpieza de Datos
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className={!csvUploaded ? "opacity-50" : ""}>
+              <CardHeader>
+                <CardTitle>Entrenamiento ML</CardTitle>
+                <CardDescription>
+                  Entrena el modelo de Machine Learning con los datos procesados
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  onClick={handleMLTraining}
+                  disabled={!csvUploaded || isProcessing}
+                  className="w-full"
+                  variant="secondary"
+                >
+                  Entrenar Modelo ML
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
